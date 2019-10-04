@@ -1,12 +1,11 @@
-module KBit
+#!/usr/bin/env julia
 
 import JuliaDB
+import Fire: @main
 
 
-function main(query::String)
-	# db = JuliaDB.loadtable("data/wikipedia_extracted_abstracts_700000.csv")
-  #= df = DataFrame(CSV.read("/Users/naseerdari/Projects/Julia/KBit/data/wikipedia_extracted_abstracts_700000.csv")) =#
-  db = JuliaDB.load("/Users/naseerdari/Projects/Julia/KBit/data/wiki.db")
+@main function main(query::AbstractString, database::AbstractString="wiki_abstracts")
+  db = JuliaDB.load(ENV["HOME"] * "/.kbit/data/$database.jdb")
   res = filter(i -> occursin(query, i.abstract), db)
   for i in res
     println()
@@ -14,9 +13,12 @@ function main(query::String)
   end
 end
 
-function save_wiki_data()
-  df = JuliaDB.loadtable("/Users/naseerdari/Projects/Julia/KBit/data/wikipedia_extracted_abstracts_700000.csv")
-  JuliaDB.save(df, "/Users/naseerdari/Projects/Julia/KBit/data/wiki.db")
+function save_wiki_abstracts_data()
+  df = JuliaDB.loadtable(ENV["HOME"] * "/data/extracted_data.csv")
+  JuliaDB.save(df, ENV["HOME"] * "/.kbit/data/wiki_abstracts.jdb")
 end
 
-end # module
+function save_wiki_article_sample_data()
+  df = JuliaDB.loadtable(ENV["HOME"] * "/Downloads/wiki_articles.json")
+  JuliaDB.save(df, ENV["HOME"] * "/.kbit/data/wiki_abstracts.jdb")
+end
