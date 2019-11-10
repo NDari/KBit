@@ -13,8 +13,13 @@ end
 function extract_page(stream)
     nf = "<mediawiki>\n"
     page_found = false
+    title_regex = r"<title>(.*)</title>"
+    title = nothing
     for line in eachline(stream)
         if page_found
+            if occursin(title_regex, line)
+                title = match(title_regex, line)[1]
+            end
             if occursin(r"</page>", line)
                 nf *= line * "\n"
                 break
@@ -28,7 +33,9 @@ function extract_page(stream)
         end
     end
     nf *= "</mediawiki>"
-    return nf
+    f = open("./data/$title.xml", "w")
+    write(f, nf)
+    close(f)
 end
 
 
