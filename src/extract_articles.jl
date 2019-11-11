@@ -1,11 +1,12 @@
 import TranscodingStreams: TranscodingStream
 import CodecBzip2: Bzip2Decompressor
 import Mmap: mmap
+import ProgressMeter: @showprogress
 
 function extract(file)
     fs = mmap(open(file))
     stream = TranscodingStream(Bzip2Decompressor(), IOBuffer(fs))
-    for i = 1:1000
+    @showprogress for i = 1:1000000
         extract_page(stream)
     end
     close(stream)
@@ -34,11 +35,13 @@ function extract_page(stream)
             page_found = true
         end
     end
+    if nf === "<mediawiki>/n"
+        return
+    end
     nf *= "</mediawiki>"
     f = open("./data/$title.xml", "w")
     write(f, nf)
     close(f)
-    println("done with $title.xml")
 end
 
 
