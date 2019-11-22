@@ -12,6 +12,37 @@ function extract(file)
     close(stream)
 end
 
+function extract_text(stream)
+    nf = ""
+    text_found = false
+    text_regex = r"<text xml:space=\"preserve\">"
+    title_regex = r"<title>(.*)</title>"
+    for line in eachline(stream)
+        if !text_found
+            if occursin(text_regex, line)
+                line = replace(line, text_regex => "")
+                if occursin(r"</text>", line)
+                    nf *= replace(line, r"</text>" => "") * "\n"
+                    break
+                else
+                    nf *= line * "\n"
+                end
+                text_found = true
+            elseif occursin(title_regex, line)
+                title = match(title_regex, line)[1]
+                nf *= "# " * replace(title, r"/| " => "_") * "\n"
+            end
+            continue
+        end
+        if occursin(r"</text>", line)
+            nf *= replace(line, r"</text>" => "") * "\n"
+            break
+        end
+        nf *= line * "\n"
+    end
+    return nf
+end
+
 function extract_page(stream)
     nf = "<mediawiki>\n"
     page_found = false
@@ -44,36 +75,6 @@ function extract_page(stream)
     close(f)
 end
 
-function extract_text(stream)
-    nf = ""
-    text_found = false
-    text_regex = r"<text xml:space=\"preserve\">"
-    title_regex = r"<title>(.*)</title>"
-    for line in eachline(stream)
-        if !text_found
-            if occursin(text_regex, line)
-                line = replace(line, text_regex => "")
-                if occursin(r"</text>", line)
-                    nf *= replace(line, r"</text>" => "") * "\n"
-                    break
-                else
-                    nf *= line * "\n"
-                end
-                text_found = true
-            elseif occursin(title_regex, line)
-                title = match(title_regex, line)[1]
-                nf *= "# " * replace(title, r"/| " => "_") * "\n"
-            end
-            continue
-        end
-        if occursin(r"</text>", line)
-            nf *= replace(line, r"</text>" => "") * "\n"
-            break
-        end
-        nf *= line * "\n"
-    end
-    return nf
-end
 
 # function par_extract_page(mmap_file)
 #     chunck_size = length(mmap_file) ÷ nthreads()
