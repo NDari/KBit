@@ -20,10 +20,15 @@ function extract_page(stream)
     for line in eachline(stream)
         if !text_found
             if occursin(text_regex, line)
-                nf *= replace(line, text_regex => "") * "\n"
+                line = replace(line, text_regex => "")
+                if occursin(r"</text>", line)
+                    nf *= replace(line, r"</text>" => "") * "\n"
+                    break
+                else
+                    nf *= line * "\n"
+                end
                 text_found = true
-            end
-            if occursin(title_regex, line)
+            elseif occursin(title_regex, line)
                 title = match(title_regex, line)[1]
                 nf *= "# " * replace(title, r"/| " => "_") * "\n"
             end
