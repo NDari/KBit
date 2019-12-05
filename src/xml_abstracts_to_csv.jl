@@ -35,6 +35,15 @@ function get_line(stream)
         return ""
     end
     abstct = abstct[1]
+    if startswith(abstct, '|')
+        return ""
+    end
+    if occursin(r"^(})+$", abstct)
+        return ""
+    end
+    if abstct == "==Events=="
+        return ""
+    end
     abstct = replace(abstct, "\"" => "'")
     return "\"$title\",\"$abstct\"\n"
 end
