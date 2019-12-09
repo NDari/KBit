@@ -16,6 +16,7 @@ function topic_data(x)
 end
 
 function remove_stop_words(abstrct, stop_words)
+    # df.stop_words_removed = join.(filter.(w -> !(lowercase.(w) in stop_words), split.(df.abstract)), " ")
     join(filter(w -> ∉(w, stop_words), split(abstrct)), " ")
 end
 
