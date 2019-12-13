@@ -60,14 +60,11 @@ end
 
 function clean_text(nf)
     @> nf begin
-        replace(r"{{(.*?)}}\n?" => "")
+        replace(r"(\*)?(\s*)?{{(.*?)}}\n?" => "")
         replace(r"\[\[(.*?):(.*?)\]\]\n?" => "")
-        replace(r"\[\[(.*?)(\|.*?)?\]\]" => s"`\1`")
-        replace(r"'''(.*?)'''" => s"**\1**")
-        replace(r"''(.*?)''" => s"*\1*")
-        replace(r"\n====\s?(.*?)====\n" => s"\n#### \1\n")
-        replace(r"\n===\s?(.*?)===\n" => s"\n### \1\n")
-        replace(r"\n==\s?(.*?)==\n" => s"\n## \1\n")
+        replace(r"\[\[(.*?)(\|.*?)?\]\]" => s"\1")
+        replace(r"'''(.*?)'''" => s"\1")
+        replace(r"''(.*?)''" => s"\1")
         replace(r"&quot;" => "\"")
         replace(r"&lt;" => "<")
         replace(r"&gt;" => ">")
