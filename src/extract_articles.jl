@@ -6,9 +6,9 @@ import Lazy: @>
 
 function extract(file)
     fs = mmap(open(file))
-    stream = TranscodingStream(Bzip2Decompressor(), IOBuffer(fs))
-    @showprogress for i = 1:1000000
-        extract_page(stream)
+    stream = IOBuffer(fs)
+    @showprogress for i = 1:5
+        println(extract_text(stream))
     end
     close(stream)
 end
@@ -27,7 +27,7 @@ function extract_text(stream)
             break
         end
     end
-    text_regex = r"<text xml:space=\"preserve\">"
+    text_regex = r"<text(.*)xml:space=\"preserve\">"
     text_found = false
     page_end = r"</page>"
     while !eof(stream)
@@ -55,7 +55,7 @@ function extract_text(stream)
             break
         end
     end
-    return title, nf
+    return title, clean_text(nf)
 end
 
 function clean_text(nf)
@@ -70,9 +70,6 @@ function clean_text(nf)
         replace(r"&gt;" => ">")
         replace(r"&amp;" => "&")
         replace(r"\n+" => "\n")
+        replace(r"<!--(.*)-->" => "\n")
     end
 end
-
-
-
-
