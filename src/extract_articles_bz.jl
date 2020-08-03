@@ -1,39 +1,33 @@
+import TranscodingStreams: TranscodingStream
+import CodecBzip2: Bzip2Decompressor
+import Mmap: mmap
+import ProgressMeter: @showprogress
 import Lazy: @>
-import Fire: @main
-import Mmap
-import DataFrames: DataFrame!
 
-function extract(file::AbstractString)
-    fs = open(file)
-    stream = IOBuffer(Mmap.mmap(fs))
-    df = DataFrame!(title = String[], text = String[])
-    counter = 1
-    while !eof(stream)
-        title, text = extract_text(stream)
-        if topic_data(title)
-            push!(df, (title, clean_text(text)))
-            counter += 1
-            if counter % 10 == 0
-                println(counter)
-            end
-        end
+function extract(file)
+    fs = mmap(open(file))
+    stream = TranscodingStream(Bzip2Decompressor(), IOBuffer(fs))
+    @showprogress for i = 1:1000000
+        extract_page(stream)
     end
     close(stream)
-    df
 end
 
-function extract_text(stream)::Tuple{String, String}
+function extract_text(stream)
     nf = ""
     title = ""
     title_regex = r"<title>(.*)</title>"
     while !eof(stream)
         line = readline(stream)
-        if occursin(title_regex, line)
+        if !occursin(title_regex, line)
+            continue
+        else
             title = match(title_regex, line)[1]
+            nf *= "# " * replace(title, r"/| " => "_") * "\n"
             break
         end
     end
-    text_regex = r"<text(.*)xml:space=\"preserve\">"
+    text_regex = r"<text xml:space=\"preserve\">"
     text_found = false
     page_end = r"</page>"
     while !eof(stream)
@@ -49,10 +43,16 @@ function extract_text(stream)::Tuple{String, String}
             continue
         else
             if occursin(r"</text>", line)
-                nf *= replace(line, r"</text>" => "")
+                nf *= replace(line, r"</text>" => "") * "\n"
                 break
             end
-            nf *= line * '\n'
+            nf *= line * "\n"
+        end
+    end
+    while !eof(stream)
+        line = readline(stream)
+        if occursin(page_end, line)
+            break
         end
     end
     return title, nf
@@ -69,16 +69,10 @@ function clean_text(nf)
         replace(r"&lt;" => "<")
         replace(r"&gt;" => ">")
         replace(r"&amp;" => "&")
-        replace(r"&nbsp;" => " ")
         replace(r"\n+" => "\n")
-        replace(r"\"" => "'")
-        replace(r"<!--(.*)-->" => "\n")
     end
 end
 
-function topic_data(x)
-    typeof(x) == String ? occursin(r" [Cc]hess[\s\.]", x) : false
-end
 
 
 

@@ -1,5 +1,3 @@
-import Fire: @main
-
 function convert(xmlfile::AbstractString, csvfile::AbstractString = "wiki_abstracts.csv")
     out = open(csvfile, "w")
     instream = open(xmlfile, "r")
